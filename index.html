@@ -2,83 +2,64 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>APP每日密钥</title>
+    <title>APP密钥生成器</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-            background: #f5f5f5;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            display: inline-block;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .key {
-            font-size: 32px;
-            font-weight: bold;
-            color: #2196F3;
-            margin: 20px 0;
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        .key { 
+            font-size: 24px; 
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            color: #2196F3; 
+            margin: 20px 0; 
             padding: 15px;
             background: #f0f8ff;
             border-radius: 5px;
-            letter-spacing: 2px;
         }
-        .rule {
-            color: #666;
-            font-size: 14px;
-            margin-top: 20px;
-            line-height: 1.5;
-        }
+        .app-selector { margin: 20px; padding: 10px; font-size: 16px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>📱 APP今日使用密钥</h2>
-        <div class="key" id="todayKey">生成中...</div>
-        <p>复制上方密钥到APP中即可使用</p>
-        
-        <div class="rule">
-            <h4>🔑 规则说明</h4>
-            密钥 = 月份(2位) + 日期(2位) + 星期小写首字母 + "AT"<br>
-            例：12月7日星期六 → 12(月)07(日)s(星期六)AT → <b>1207sAT</b>
-        </div>
-        
-        <div class="rule">
-            <h4>📅 星期对应字母</h4>
-            星期日: u | 星期一: m | 星期二: t | 星期三: w<br>
-            星期四: r | 星期五: f | 星期六: s
-        </div>
-    </div>
-
+    <h2>🔑 16位APP密钥生成器</h2>
+    
+    <select class="app-selector" id="appSelect">
+        <option value="OFFICE">办公助手</option>
+        <option value="LEARN">学习工具</option>
+        <option value="PLAY">娱乐中心</option>
+    </select>
+    
+    <button onclick="generateKey()">生成密钥</button>
+    
+    <div class="key" id="keyDisplay">点击上方按钮生成</div>
+    
     <script>
-        // 获取当前日期
-        const now = new Date();
-        const month = now.getMonth() + 1;  // 月份 (1-12)
-        const day = now.getDate();         // 日 (1-31)
-        const weekDay = now.getDay();      // 星期几 (0=周日, 1=周一...)
+        function generateKey() {
+            const suffix = document.getElementById('appSelect').value;
+            const now = new Date();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const weekDay = now.getDay();
+            
+            // 四部分生成
+            const part1 = (month < 10 ? '0' : '') + month + (day < 10 ? '0' : '') + day;
+            
+            const weekCodes = ['09', '18', '27', '36', '45', '54', '63'];
+            const part2 = weekCodes[weekDay];
+            
+            const dynamic = (month * day * 100 + weekDay * 9) % 1000000;
+            const part3 = dynamic.toString().padStart(6, '0');
+            
+            const part4 = suffix + "X"; // 后缀补足4位
+            
+            // 组合并格式化
+            const fullKey = part1 + part2 + part3 + part4;
+            const formattedKey = fullKey.match(/.{1,4}/g).join('-');
+            
+            document.getElementById('keyDisplay').textContent = formattedKey;
+            console.log("今日密钥:", formattedKey);
+        }
         
-        // 星期对应的小写字母（按你的规则）
-        const weekLetters = ['u', 'm', 't', 'w', 'r', 'f', 's'];
-        const weekLetter = weekLetters[weekDay];
-        
-        // 固定后缀（大写字母）
-        const suffix = "AT";
-        
-        // 格式：月份补零到2位 + 日期补零到2位 + 星期字母 + 后缀
-        const monthStr = month < 10 ? '0' + month : '' + month;
-        const dayStr = day < 10 ? '0' + day : '' + day;
-        const key = monthStr + dayStr + weekLetter + suffix;
-        
-        // 显示在页面上
-        document.getElementById("todayKey").textContent = key;
-        
-        // 控制台也输出，方便调试
-        console.log("今日密钥:", key);
-        console.log("生成时间:", now.toLocaleString());
+        // 页面加载时自动生成
+        generateKey();
     </script>
 </body>
 </html>
