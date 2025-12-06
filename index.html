@@ -1,65 +1,544 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APP密钥生成器</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        .key { 
-            font-size: 24px; 
-            font-family: 'Courier New', monospace;
-            letter-spacing: 1px;
-            color: #2196F3; 
-            margin: 20px 0; 
-            padding: 15px;
-            background: #f0f8ff;
-            border-radius: 5px;
-        }
-        .app-selector { margin: 20px; padding: 10px; font-size: 16px; }
-    </style>
-</head>
-<body>
-    <h2>🔑 16位APP密钥生成器</h2>
-    
-    <select class="app-selector" id="appSelect">
-        <option value="OFFICE">办公助手</option>
-        <option value="LEARN">学习工具</option>
-        <option value="PLAY">娱乐中心</option>
-    </select>
-    
-    <button onclick="generateKey()">生成密钥</button>
-    
-    <div class="key" id="keyDisplay">点击上方按钮生成</div>
-    
-    <script>
-        function generateKey() {
-            const suffix = document.getElementById('appSelect').value;
-            const now = new Date();
-            const month = now.getMonth() + 1;
-            const day = now.getDate();
-            const weekDay = now.getDay();
-            
-            // 四部分生成
-            const part1 = (month < 10 ? '0' : '') + month + (day < 10 ? '0' : '') + day;
-            
-            const weekCodes = ['09', '18', '27', '36', '45', '54', '63'];
-            const part2 = weekCodes[weekDay];
-            
-            const dynamic = (month * day * 100 + weekDay * 9) % 1000000;
-            const part3 = dynamic.toString().padStart(6, '0');
-            
-            const part4 = suffix + "X"; // 后缀补足4位
-            
-            // 组合并格式化
-            const fullKey = part1 + part2 + part3 + part4;
-            const formattedKey = fullKey.match(/.{1,4}/g).join('-');
-            
-            document.getElementById('keyDisplay').textContent = formattedKey;
-            console.log("今日密钥:", formattedKey);
+        /* 基础样式 - 简洁现代风格 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
         }
         
-        // 页面加载时自动生成
-        generateKey();
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        /* 卡片容器 */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            padding: 10px;
+        }
+        
+        /* 卡片样式 */
+        .key-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .key-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+        
+        /* 卡片头部 */
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eef1f6;
+        }
+        
+        .app-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .icon-office {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+        
+        .icon-study {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        }
+        
+        .app-info h3 {
+            color: #2c3e50;
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+        }
+        
+        .app-info p {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        /* 密钥显示区域 */
+        .key-display {
+            margin-bottom: 25px;
+        }
+        
+        .key-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .key-label i {
+            margin-right: 8px;
+            font-size: 1rem;
+        }
+        
+        .key-value {
+            font-family: 'Courier New', 'SF Mono', Monaco, monospace;
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #2c3e50;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+            text-align: center;
+            word-break: break-all;
+            transition: all 0.2s ease;
+        }
+        
+        /* 卡片底部 */
+        .card-footer {
+            margin-top: auto;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .card-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .copy-btn {
+            background: #3498db;
+            color: white;
+        }
+        
+        .copy-btn:hover {
+            background: #2980b9;
+        }
+        
+        .refresh-btn {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #e9ecef;
+        }
+        
+        .refresh-btn:hover {
+            background: #e9ecef;
+        }
+        
+        /* 规则说明 */
+        .rules-box {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 25px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .rules-box h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .rules-box p {
+            color: #6c757d;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+        
+        /* 底部信息 */
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #eef1f6;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .key-value {
+                font-size: 1.4rem;
+            }
+            
+            .card-btn {
+                min-width: 100%;
+            }
+        }
+    </style>
+    <!-- 引入Font Awesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-key"></i> APP密钥生成器</h1>
+            <p>每日自动更新的密钥，每个APP独立生成。密钥每天变化一次，请及时更新。</p>
+        </div>
+        
+        <div class="cards-container">
+            <!-- 卡片1：办公助手 -->
+            <div class="key-card">
+                <div class="card-header">
+                    <div class="app-icon icon-office">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div class="app-info">
+                        <h3>办公助手</h3>
+                        <p>OFFICE - 用于内部办公工具访问</p>
+                    </div>
+                </div>
+                
+                <div class="key-display">
+                    <div class="key-label">
+                        <i class="far fa-clock"></i> 今日密钥（24小时有效）
+                    </div>
+                    <div class="key-value" id="key-office">
+                        XXXX-XXXX-XXXX-XXXX
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <button class="card-btn copy-btn" data-app="office">
+                        <i class="far fa-copy"></i> 复制密钥
+                    </button>
+                    <button class="card-btn refresh-btn" data-app="office">
+                        <i class="fas fa-redo"></i> 重新生成
+                    </button>
+                </div>
+                
+                <div class="rules-box">
+                    <h4><i class="fas fa-info-circle"></i> 密钥规则</h4>
+                    <!-- 规则说明会通过JavaScript动态生成 -->
+                    <p id="rule-office">生成规则说明...</p>
+                </div>
+            </div>
+            
+            <!-- 卡片2：学习工具 -->
+            <div class="key-card">
+                <div class="card-header">
+                    <div class="app-icon icon-study">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div class="app-info">
+                        <h3>学习工具</h3>
+                        <p>STUDY - 用于教育资料库访问</p>
+                    </div>
+                </div>
+                
+                <div class="key-display">
+                    <div class="key-label">
+                        <i class="far fa-clock"></i> 今日密钥（24小时有效）
+                    </div>
+                    <div class="key-value" id="key-study">
+                        XXXX-XXXX-XXXX-XXXX
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <button class="card-btn copy-btn" data-app="study">
+                        <i class="far fa-copy"></i> 复制密钥
+                    </button>
+                    <button class="card-btn refresh-btn" data-app="study">
+                        <i class="fas fa-redo"></i> 重新生成
+                    </button>
+                </div>
+                
+                <div class="rules-box">
+                    <h4><i class="fas fa-info-circle"></i> 密钥规则</h4>
+                    <!-- 规则说明会通过JavaScript动态生成 -->
+                    <p id="rule-study">生成规则说明...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>密钥每日凌晨自动更新 | 每个APP使用独立算法生成 | 页面兼容所有现代浏览器</p>
+        </div>
+    </div>
+
+    <script>
+        /*
+         * =============================================
+         * 密钥生成核心函数
+         * 说明：所有APP共用此函数，通过appId参数区分不同APP的规则
+         * =============================================
+         */
+        
+        /**
+         * 生成16位密钥（4组，每组4位，用-连接）
+         * @param {string} appId - APP标识符，用于区分不同APP的生成规则
+         * @param {Date} date - 生成日期，默认为当前日期
+         * @returns {string} 格式化后的16位密钥
+         */
+        function generateKey(appId, date = new Date()) {
+            const month = date.getMonth() + 1;  // 月份 (1-12)
+            const day = date.getDate();         // 日期 (1-31)
+            const year = date.getFullYear();    // 完整年份
+            
+            /* 
+             * 密钥规则说明（你可以修改这部分）：
+             * 1. 密钥每天变化一次（基于年月日）
+             * 2. 每个APP可以有不同的算法规则
+             * 3. 最终生成16位字符（字母+数字）
+             * 4. 用-每4位分割，便于阅读
+             */
+            
+            // 根据不同的APP使用不同的算法
+            let baseNumber;
+            switch(appId) {
+                case 'office':
+                    // 办公助手的算法：基于月、日、年进行计算
+                    baseNumber = (month * 1000 + day * 10 + year % 100) * 7;
+                    break;
+                case 'study':
+                    // 学习工具的算法：使用不同的系数
+                    baseNumber = (month * 500 + day * 20 + year % 100) * 13;
+                    break;
+                default:
+                    // 默认算法
+                    baseNumber = (month * 300 + day * 30 + year % 100) * 11;
+            }
+            
+            // 将数字转换为16进制并处理，确保得到16位字符
+            let hexStr = baseNumber.toString(16).toUpperCase();
+            
+            // 如果长度不够，用特定字符填充
+            while (hexStr.length < 16) {
+                hexStr = 'A' + hexStr + 'F';
+            }
+            
+            // 确保长度不超过16位
+            hexStr = hexStr.substring(0, 16);
+            
+            // 每4位插入一个短横线
+            const formattedKey = hexStr.replace(/(.{4})/g, '$1-').slice(0, -1);
+            
+            return formattedKey;
+        }
+        
+        /**
+         * 获取密钥规则说明文本
+         * @param {string} appId - APP标识符
+         * @param {Date} date - 生成日期
+         * @returns {string} 规则说明文本
+         */
+        function getRuleText(appId, date) {
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const year = date.getFullYear();
+            
+            // 根据APP返回不同的规则说明
+            switch(appId) {
+                case 'office':
+                    return `基于日期算法生成：(${month}×1000 + ${day}×10 + ${year%100})×7，结果转为16进制并格式化为16位。每日变化一次。`;
+                case 'study':
+                    return `基于日期算法生成：(${month}×500 + ${day}×20 + ${year%100})×13，结果转为16进制并格式化为16位。每日变化一次。`;
+                default:
+                    return `基于日期算法生成，每日变化一次。`;
+            }
+        }
+        
+        /*
+         * =============================================
+         * 页面交互功能
+         * =============================================
+         */
+        
+        /**
+         * 更新指定APP卡片的密钥显示
+         * @param {string} appId - APP标识符
+         */
+        function updateKeyDisplay(appId) {
+            const date = new Date();
+            const keyElement = document.getElementById(`key-${appId}`);
+            const ruleElement = document.getElementById(`rule-${appId}`);
+            
+            // 生成密钥
+            const key = generateKey(appId, date);
+            
+            // 显示密钥
+            keyElement.textContent = key;
+            
+            // 显示规则说明
+            const ruleText = getRuleText(appId, date);
+            ruleElement.textContent = ruleText;
+            
+            // 添加视觉反馈
+            keyElement.style.color = '#2c3e50';
+            keyElement.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                keyElement.style.transform = 'scale(1)';
+            }, 200);
+            
+            console.log(`已更新 ${appId} 的密钥: ${key}`);
+        }
+        
+        /**
+         * 复制密钥到剪贴板
+         * @param {string} appId - APP标识符
+         */
+        function copyKeyToClipboard(appId) {
+            const keyElement = document.getElementById(`key-${appId}`);
+            const keyText = keyElement.textContent;
+            
+            // 使用现代剪贴板API
+            navigator.clipboard.writeText(keyText).then(() => {
+                // 复制成功反馈
+                const button = document.querySelector(`button[data-app="${appId}"].copy-btn`);
+                const originalText = button.innerHTML;
+                
+                button.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                button.style.background = '#27ae60';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = '';
+                }, 2000);
+                
+                console.log(`已复制 ${appId} 密钥到剪贴板`);
+            }).catch(err => {
+                // 备用复制方法
+                const textArea = document.createElement('textarea');
+                textArea.value = keyText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                alert(`已复制密钥: ${keyText}`);
+            });
+        }
+        
+        /*
+         * =============================================
+         * 页面初始化与事件绑定
+         * =============================================
+         */
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成，开始初始化密钥...');
+            
+            // 为所有APP生成初始密钥
+            const apps = ['office', 'study'];
+            apps.forEach(appId => {
+                updateKeyDisplay(appId);
+            });
+            
+            // 绑定复制按钮事件
+            document.querySelectorAll('.copy-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const appId = this.getAttribute('data-app');
+                    copyKeyToClipboard(appId);
+                });
+            });
+            
+            // 绑定重新生成按钮事件
+            document.querySelectorAll('.refresh-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const appId = this.getAttribute('data-app');
+                    
+                    // 按钮点击反馈
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 生成中';
+                    
+                    setTimeout(() => {
+                        updateKeyDisplay(appId);
+                        this.innerHTML = '<i class="fas fa-redo"></i> 重新生成';
+                    }, 300);
+                });
+            });
+            
+            console.log('初始化完成，所有密钥已生成');
+        });
+        
+        /*
+         * =============================================
+         * 如何添加更多APP卡片
+         * =============================================
+         * 
+         * 步骤1：在HTML中添加新的卡片结构
+         * 步骤2：在generateKey函数中添加新的appId处理逻辑
+         * 步骤3：在getRuleText函数中添加新的规则说明
+         * 步骤4：在页面初始化的apps数组中添加新的appId
+         * 
+         * 提示：你可以复制现有的卡片HTML代码，修改其中的：
+         * 1. app-icon的class和图标
+         * 2. app-info中的标题和描述
+         * 3. 所有id和data-app属性中的app标识符
+         */
+        
     </script>
 </body>
 </html>
