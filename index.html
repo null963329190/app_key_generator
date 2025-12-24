@@ -244,25 +244,25 @@
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-key"></i> APP密钥生成器</h1>
-            <p>每日自动更新的密钥，每个APP独立生成。密钥每天变化一次。</p>
+            <p>每小时自动更新的密钥，每个APP独立生成。</p>
         </div>
         
         <div class="cards-container">
-            <!-- 卡片1：办公助手 -->
+            <!-- 卡片1：U-FlyTool -->
             <div class="key-card">
                 <div class="card-header">
                     <div class="app-icon icon-office">
                         <i class="fas fa-briefcase"></i>
                     </div>
                     <div class="app-info">
-                        <h3>办公助手</h3>
-                        <p>OFFICE - 用于内部办公工具访问</p>
+                        <h3>U-FlyTool</h3>
+                        <p>用于设备激活</p>
                     </div>
                 </div>
                 
                 <div class="key-display">
                     <div class="key-label">
-                        <i class="far fa-clock"></i> 今日密钥（24小时有效）
+                        <i class="far fa-clock"></i> 当前密钥（1小时有效）
                     </div>
                     <div class="key-value" id="key-office">
                         XXXX-XXXX-XXXX-XXXX
@@ -296,7 +296,7 @@
                 
                 <div class="key-display">
                     <div class="key-label">
-                        <i class="far fa-clock"></i> 今日密钥（24小时有效）
+                        <i class="far fa-clock"></i> 当前密钥（1小时有效）
                     </div>
                     <div class="key-value" id="key-study">
                         XXXX-XXXX-XXXX-XXXX
@@ -318,7 +318,7 @@
         </div>
         
         <div class="footer">
-            <p>密钥每日凌晨自动更新 | 每个APP使用独立算法生成 | 页面兼容所有现代浏览器</p>
+            <p>密钥每小时自动更新 | 每个APP使用独立算法生成 | 页面兼容所有现代浏览器</p>
         </div>
     </div>
 
@@ -339,11 +339,12 @@
         function generateKey(appId, date = new Date()) {
             const month = date.getMonth() + 1;  // 月份 (1-12)
             const day = date.getDate();         // 日期 (1-31)
+            const hour = date.getHour();        // 小时 (0-23)
             const year = date.getFullYear();    // 完整年份
             
             /* 
              * 密钥规则说明（你可以修改这部分）：
-             * 1. 密钥每天变化一次（基于年月日）
+             * 1. 密钥每小时变化一次（基于年月日时）
              * 2. 每个APP可以有不同的算法规则
              * 3. 最终生成16位字符（字母+数字）
              * 4. 用-每4位分割，便于阅读
@@ -353,16 +354,16 @@
             let baseNumber;
             switch(appId) {
                 case 'office':
-                    // 办公助手的算法：基于月、日、年进行计算
-                    baseNumber = (month * 1000 + day * 10 + year % 100) * 7;
+                    // U-FlyTool的算法：基于月、日、时、年进行计算
+                    baseNumber = (month * 1000 + day * 10 + hour * 5 + year % 100) * 7;
                     break;
                 case 'study':
                     // 学习工具的算法：使用不同的系数
-                    baseNumber = (month * 500 + day * 20 + year % 100) * 13;
+                    baseNumber = (month * 500 + day * 20 + hour * 3 + year % 100) * 13;
                     break;
                 default:
                     // 默认算法
-                    baseNumber = (month * 300 + day * 30 + year % 100) * 11;
+                    baseNumber = (month * 300 + day * 30 + hour * 7 + year % 100) * 11;
             }
             
             // 将数字转换为16进制并处理，确保得到16位字符
@@ -380,28 +381,6 @@
             const formattedKey = hexStr.replace(/(.{4})/g, '$1-').slice(0, -1);
             
             return formattedKey;
-        }
-        
-        /**
-         * 获取密钥规则说明文本
-         * @param {string} appId - APP标识符
-         * @param {Date} date - 生成日期
-         * @returns {string} 规则说明文本
-         */
-        function getRuleText(appId, date) {
-            const month = date.getMonth() + 1;
-            const day = date.getDate();
-            const year = date.getFullYear();
-            
-            // 根据APP返回不同的规则说明
-            switch(appId) {
-                case 'office':
-                    return `基于日期算法生成：(${month}×1000 + ${day}×10 + ${year%100})×7，结果转为16进制并格式化为16位。每日变化一次。`;
-                case 'study':
-                    return `基于日期算法生成：(${month}×500 + ${day}×20 + ${year%100})×13，结果转为16进制并格式化为16位。每日变化一次。`;
-                default:
-                    return `基于日期算法生成，每日变化一次。`;
-            }
         }
         
         /*
@@ -426,7 +405,7 @@
             keyElement.textContent = key;
             
             // 显示规则说明
-            const ruleText = getRuleText(appId, date);
+            const ruleText = '';
             ruleElement.textContent = ruleText;
             
             // 添加视觉反馈
@@ -508,8 +487,7 @@
          * 
          * 步骤1：在HTML中添加新的卡片结构
          * 步骤2：在generateKey函数中添加新的appId处理逻辑
-         * 步骤3：在getRuleText函数中添加新的规则说明
-         * 步骤4：在页面初始化的apps数组中添加新的appId
+         * 步骤3：在页面初始化的apps数组中添加新的appId
          * 
          * 提示：你可以复制现有的卡片HTML代码，修改其中的：
          * 1. app-icon的class和图标
